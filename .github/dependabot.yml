@@ -1,11 +1,13 @@
 version: 2
 updates:
-  # GitHub Actions workflows
+  # GitHub Actions workflows (security + patch handled by workflow)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
+    rebase-strategy: auto
+    labels: [dependencies, github-actions]
 
   # JavaScript / TypeScript (npm)
   - package-ecosystem: "npm"
@@ -13,19 +15,34 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    ignore:
+    rebase-strategy: auto
+    labels: [dependencies, javascript]
+    # Anchor for ignoring major/minor; reuse across ecosystems
+    ignore: &ignore_major_minor_updates
       - dependency-name: "*"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    groups:
+      types:
+        patterns: ["@types/*"]
+      eslint:
+        patterns: ["eslint*", "@typescript-eslint/*"]
+      testing:
+        patterns: ["jest*", "vitest*", "@testing-library/*"]
 
-  # Python (pip, requirements*.txt)
+  # Python (pip)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    rebase-strategy: auto
+    labels: [dependencies, python]
+    ignore: *ignore_major_minor_updates
+    groups:
+      testing:
+        patterns: ["pytest*", "hypothesis*"]
+      linting:
+        patterns: ["mypy", "ruff*"]
 
   # Go modules
   - package-ecosystem: "gomod"
@@ -33,6 +50,8 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
+    rebase-strategy: auto
+    labels: [dependencies, go]
 
   # Dockerfiles
   - package-ecosystem: "docker"
@@ -40,9 +59,9 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    rebase-strategy: auto
+    labels: [dependencies, docker]
+    ignore: *ignore_major_minor_updates
 
   # Ruby (bundler)
   - package-ecosystem: "bundler"
@@ -50,9 +69,9 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    rebase-strategy: auto
+    labels: [dependencies, ruby]
+    ignore: *ignore_major_minor_updates
 
   # Java (gradle)
   - package-ecosystem: "gradle"
@@ -60,6 +79,8 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
+    rebase-strategy: auto
+    labels: [dependencies, java]
 
   # Java (maven)
   - package-ecosystem: "maven"
@@ -67,9 +88,9 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    rebase-strategy: auto
+    labels: [dependencies, java]
+    ignore: *ignore_major_minor_updates
 
   # PHP (composer)
   - package-ecosystem: "composer"
@@ -77,9 +98,9 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    rebase-strategy: auto
+    labels: [dependencies, php]
+    ignore: *ignore_major_minor_updates
 
   # .NET (nuget)
   - package-ecosystem: "nuget"
@@ -87,6 +108,6 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    rebase-strategy: auto
+    labels: [dependencies, dotnet]
+    ignore: *ignore_major_minor_updates
