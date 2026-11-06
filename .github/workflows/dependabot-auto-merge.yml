@@ -13,12 +13,12 @@ permissions:
 jobs:
   automerge:
     # Run only for Dependabot or Renovate PRs
-    if: github.actor == 'dependabot[bot]' || github.actor == 'renovate[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'renovate[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -34,10 +34,14 @@ jobs:
 
       - name: Decide eligibility
         id: decide
+        env:
+          IS_SECURITY: ${{ steps.metadata.outputs.is-security-update }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          RENO_PATCH: ${{ steps.renolabel.outputs.has_patch }}
         run: |
-          is_security='${{ steps.metadata.outputs.is-security-update }}'
-          upd_type='${{ steps.metadata.outputs.update-type }}'
-          reno_patch='${{ steps.renolabel.outputs.has_patch }}'
+          is_security="$IS_SECURITY"
+          upd_type="$UPDATE_TYPE"
+          reno_patch="$RENO_PATCH"
           should=false
           if [ "$is_security" = "true" ]; then should=true; fi
           if [ "$upd_type" = "version-update:semver-patch" ]; then should=true; fi
@@ -45,7 +49,7 @@ jobs:
           echo "should=$should" >> "$GITHUB_OUTPUT"
 
       - name: Approve PR
-        if: steps.decide.outputs.should == 'true' && github.actor == 'dependabot[bot]'
+        if: steps.decide.outputs.should == 'true' && github.event.pull_request.user.login == 'dependabot[bot]'
         run: gh pr review "$PR_URL" --approve --body "Automated approval for dependency patch/security update"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
